@@ -1,12 +1,8 @@
-ARG BASE_IMAGE=python:3.12-slim
-FROM ${BASE_IMAGE}
+FROM smart-training-harness:competition-v3
 WORKDIR /app
-COPY cpu-a-guide-20261110-v1/baselines/requirements.txt /tmp/requirements.txt
-RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt
-COPY contest_rounds.py run_all.py container_entry.py ./
-COPY cpu-a-guide-20261110-v1/ ./cpu-a-guide-20261110-v1/
-COPY cpu-b-rul-20261110-v1/ ./cpu-b-rul-20261110-v1/
-COPY cpu-c-guide-20261110-v1/ ./cpu-c-guide-20261110-v1/
-ENV PYTHONUNBUFFERED=1
-ENTRYPOINT ["python", "container_entry.py"]
-CMD ["--output", "/results", "--rounds", "10"]
+ADD sdk.tar.gz /opt/
+# Install the pure-Python SDK directly into the base interpreter's package directory.
+RUN python3 -c "import sysconfig,shutil; shutil.copytree('/opt/contest-harness-sdk-1.0.2/contest_harness', sysconfig.get_path('purelib')+'/contest_harness')" && cp /opt/contest-harness-sdk-1.0.2/template/harness.py /app/harness.py
+COPY contest_submission.py /app/contest_submission.py
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENTRYPOINT ["python3", "/app/harness.py"]
